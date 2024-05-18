@@ -10,22 +10,18 @@ using System.Threading.Tasks;
 
 namespace FloatSyntaxConv.Passes {
     internal class ChangeUsingDirectPass : PassBase {
-        string origin, replace;
-        public ChangeUsingDirectPass(string origin,string replace) {
-            this.origin = origin;
-            this.replace = replace;
+        Func<string, string> replacer;
+        public ChangeUsingDirectPass(Func<string,string> replacer) {
+            this.replacer = replacer;
         }
         internal override SyntaxNode Transform(SyntaxNode root, SemanticModel model) {
             var nodes = root.DescendantNodes()
-                .OfType<UsingDirectiveSyntax>()
-                .Select(s=>s.ChildNodes().OfType<NameSyntax>().FirstOrDefault());
-            foreach(var n in nodes) {
-                if(n==null)continue;
-                if (Regex.IsMatch(n.ToString(), origin)) {
-                    var s = Regex.Replace(n.ToString(),origin, replace);
-                    root = root.ReplaceNode(n, SyntaxFactory.IdentifierName(s));
-                }
-            }
+                .Where(n=>n is UsingDirectiveSyntax or NamespaceDeclarationSyntax or TypeOfExpressionSyntax)
+                .SelectMany(s=>s.ChildNodes().OfType<NameSyntax>());
+            root = root.ReplaceNodes(nodes, (o, n) => {
+                var repl = replacer(o.ToString());
+                return SyntaxFactory.IdentifierName(repl);
+            });
             return root;
         }
     }

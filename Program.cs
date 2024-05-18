@@ -13,11 +13,15 @@ PassBase[] passes;
 
 unsafe {
     passes = new PassBase[] {
-        new DisableDefaultParametersPass( ),
-        new ChangeUsingDirectPass(@"Unity\.Mathematics","UnityS.Mathematics"),
-        new ChangeUsingDirectPass(@"Unity\.Physics","UnityS.Physics"),
-        new ChangeUsingDeclPass(@"Unity\.Mathematics","UnityS.Mathematics"),
-        new ChangeUsingDeclPass(@"Unity\.Physics","UnityS.Physics"),
+        new DisableDefaultParametersPass(),
+        new DisableFieldConstPass(new HashSet<string>{"float"}),
+        new ChangeUsingDirectPass(ns => {
+            if(ns.StartsWith("Unity.Mathematics")) return "UnityS"+ns[5..];
+            if(ns.StartsWith("Unity.Physics")) return "UnityS"+ns[5..];
+            return ns;
+        }),
+        //new ChangeUsingDeclPass(@"Unity\.Mathematics","UnityS.Mathematics"),
+        //new ChangeUsingDeclPass(@"Unity\.Physics","UnityS.Physics"),
         new ReplacePredefTypePass(@"float","sfloat"),
         new ReplaceUserdefTypePass(@"double4x4","float4"),
         new ReplaceNumericLiteralPass(f=>$"sfloat.FromRaw({*(uint*)&f})"),

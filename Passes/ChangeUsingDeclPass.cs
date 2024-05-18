@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FloatSyntaxConv.Passes {
+    [Obsolete]
     internal class ChangeUsingDeclPass : PassBase {
         string origin, replace;
         public ChangeUsingDeclPass(string origin,string replace) {
