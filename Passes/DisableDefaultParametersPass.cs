@@ -17,11 +17,19 @@ namespace FloatSyntaxConv.Passes {
         }
         internal override SyntaxNode Transform(SyntaxNode root, SemanticModel model) {
             var nodes = root.DescendantNodes()
-                .OfType<BlockSyntax>()
-                .SelectMany(n=>n.DescendantNodesAndTokens().OfType<ConstantPatternSyntax>())
+                .OfType<InvocationExpressionSyntax>()
                 ;
-            InvocationExpressionSyntax s;
-            root = root.RemoveNodes(nodes,SyntaxRemoveOptions.KeepNoTrivia)!;
+            foreach(var node in nodes) {
+                SymbolInfo sym = default;
+                try {
+                    sym = model.GetSymbolInfo(node);
+
+                }
+                catch {
+
+                }
+                //Console.WriteLine(node+": "+sym.Symbol);
+            }
             return root;
         }
     }
