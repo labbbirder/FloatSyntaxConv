@@ -15,7 +15,7 @@ namespace FloatSyntaxConv.Passes {
             this.origin = origin;
             this.replace = replace;
         }
-        internal override SyntaxNode Transform(SyntaxNode root) {
+        internal override SyntaxNode Transform(SyntaxNode root, SemanticModel model) {
             var nodes = root.DescendantNodes()
                 .OfType<PredefinedTypeSyntax>()
                 .Where(n => n.ToString() == origin)

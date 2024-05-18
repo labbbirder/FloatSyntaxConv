@@ -7,8 +7,15 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FloatSyntaxConv {
+
+    internal enum VisitPhase{
+        Unknown,
+        Collecting,
+        Transforming,
+        Final,
+    }
     internal abstract class PassBase {
-        internal abstract SyntaxNode Transform(SyntaxNode root);
+        internal abstract SyntaxNode Transform(SyntaxNode root, SemanticModel model);
         protected bool IsWildcardMatch(string Wildcard, string input) {
             Wildcard = Wildcard
                 .Replace(".", "\\.")
