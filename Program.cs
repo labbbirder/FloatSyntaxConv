@@ -20,10 +20,11 @@ unsafe {
             if(ns.StartsWith("Unity.Physics")) return "UnityS"+ns[5..];
             return ns;
         }),
-        //new ChangeUsingDeclPass(@"Unity\.Mathematics","UnityS.Mathematics"),
-        //new ChangeUsingDeclPass(@"Unity\.Physics","UnityS.Physics"),
         new ReplacePredefTypePass(@"float","sfloat"),
-        new ReplaceUserdefTypePass(@"double4x4","float4"),
+        //new ReplacePredefTypePass(@"double","sfloat"),
+        new ReplaceUserdefTypePass(@"double4x4","float4x4"),
+        new ReplaceUserdefTypePass(@"double4","float4"),
+        new ReplaceUserdefTypePass(@"double3","float3"),
         new ReplaceNumericLiteralPass(f=>$"sfloat.FromRaw({*(uint*)&f})"),
         new DisableBlockConstPass( DisableBlockOption.RemoveConstKeywordOnly),
     };
