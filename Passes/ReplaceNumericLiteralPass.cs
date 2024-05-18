@@ -19,6 +19,7 @@ namespace FloatSyntaxConv.Passes {
             var tokens = root.DescendantTokens()
                 .OfType<SyntaxToken>()
                 .Where(t => t.IsKind(SyntaxKind.NumericLiteralToken))
+                .Where(t=>t.Value is float or double)
                 ;
             var dict = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach(var token in tokens) { 
