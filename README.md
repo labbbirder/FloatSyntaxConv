@@ -30,6 +30,22 @@ namespace com.bbbirder.Simulation{
     }
 }
 ```
+## CLI Usage
+构建后，通过命令行运行。
+
+参数如下：
+```bash
+FloatSyntaxConv 1.0.0+816f22ed4d5839a40ee5aa01fc78b70d72ec53e0
+Copyright (C) 2024 bbbirder
+
+  -i, --input-path     Required. The folder path of cs files.
+
+  -o, --output-path    Required. The output path of translated cs files.
+
+  --help               Display this help screen.
+
+  --version            Display version information.
+```
 
 ## More Details
 
