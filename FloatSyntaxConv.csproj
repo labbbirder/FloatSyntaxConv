@@ -8,6 +8,11 @@
     <Authors>bbbirder</Authors>
     <PackageProjectUrl>https://github.com/labbbirder/FloatSyntaxConv</PackageProjectUrl>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <Configurations>Debug;Release;Develop</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|AnyCPU'">
+    <DefineConstants>$(DefineConstants);Develop</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
