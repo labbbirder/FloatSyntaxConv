@@ -8,28 +8,44 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace FloatSyntaxConv.Passes {
+namespace FloatSyntaxConv.Passes
+{
 
-    internal class DisableDefaultParametersPass : PassBase {
+    internal class DisableDefaultParametersPass : PassBase
+    {
 
-        public DisableDefaultParametersPass() {
+        public DisableDefaultParametersPass()
+        {
             //this.option = option;
         }
-        internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation) {
-            var nodes = root.DescendantNodes()
-                .OfType<InvocationExpressionSyntax>()
+        internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation)
+        {
+            var paramLists = root.DescendantNodes()
+                .OfType<ParameterListSyntax>()
                 ;
-            foreach(var node in nodes) {
-                SymbolInfo sym = default;
-                try {
-                    //sym = model.GetSymbolInfo(node);
 
+            var list = new List<SyntaxNode>();
+            foreach (var paramList in paramLists)
+            {
+                // get default values
+                var defaultParamValues = paramList.DescendantNodes()
+                    .OfType<EqualsValueClauseSyntax>()
+                    .Select(n => n.Value)
+                    ;
+                bool hasFloatingDefault = false;
+                var defaultSyntaxs = new List<SyntaxNode>();
+                foreach (var v in defaultParamValues)
+                {
+                    var p = v.Ancestors().OfType<ParameterSyntax>().First();
+                    // check floating type
+                    hasFloatingDefault |= p.Type is PredefinedTypeSyntax pdt
+                        && pdt.ToString() is "float" or "double";
+                    defaultSyntaxs.Add(v.Parent!);
                 }
-                catch {
-
-                }
-                //Console.WriteLine(node+": "+sym.Symbol);
+                if (!hasFloatingDefault) continue;
+                list.AddRange(defaultSyntaxs);
             }
+            root = root.RemoveNodes(list, SyntaxRemoveOptions.KeepNoTrivia)!;
             return root;
         }
     }

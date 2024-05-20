@@ -5,32 +5,37 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace FloatSyntaxConv.Passes {
+namespace FloatSyntaxConv.Passes
+{
 
-    internal class ConstantPropagatePass : PassBase {
+    internal class ConstantPropagatePass : PassBase
+    {
 
-        public ConstantPropagatePass() {
+        public ConstantPropagatePass()
+        {
         }
-        
-        static ExpressionSyntax GetFieldValue(IFieldSymbol symbol) {
+
+        static ExpressionSyntax GetFieldValue(IFieldSymbol symbol)
+        {
             return symbol.DeclaringSyntaxReferences[0].GetSyntax()
                 .DescendantNodes()
                 .OfType<EqualsValueClauseSyntax>()
                 .Single().Value;
         }
 
-        internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation) {
+        internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation)
+        {
             var nodes = root.DescendantNodes()
                 .OfType<InvocationExpressionSyntax>()
                 ;
-                    var thisModel = compilation.GetSemanticModel(root.SyntaxTree);
+            var thisModel = compilation.GetSemanticModel(root.SyntaxTree);
             var map = new Dictionary<SyntaxNode, SyntaxNode>();
-            foreach(var ivkNode in nodes) {
+            foreach (var ivkNode in nodes)
+            {
                 SymbolInfo sym = default;
-                try {
+                try
+                {
                     sym = thisModel.GetSymbolInfo(ivkNode);
                 }
                 catch { continue; }
@@ -69,10 +74,9 @@ namespace FloatSyntaxConv.Passes {
                     }
                 }
                 if (!hasFloatingDefault) continue;
-                Console.WriteLine(ivkNode);
+
                 // fill invocation arguments
                 var filledArgumentsSyntax = SyntaxFactory.ArgumentList(fillingArguments);
-                Console.WriteLine(fillingArguments.Count);
                 map.Add(ivkNode, ivkNode.WithArgumentList(filledArgumentsSyntax));
             }
             root = root.ReplaceNodes(map.Keys, (o, n) => map[o]);

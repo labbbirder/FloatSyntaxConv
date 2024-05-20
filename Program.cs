@@ -13,19 +13,19 @@ PassBase[] passes;
 
 unsafe {
     passes = new PassBase[] {
-        new ConstPropagatePass(),
-        //new DisableDefaultParametersPass(),
+        new ConstantPropagatePass(),
+        new DisableDefaultParametersPass(),
         new DisableFieldConstPass(new HashSet<string>{"float"}),
         new ReplaceNamePass(ns => {
             if(ns.StartsWith("Unity.Mathematics")) return "UnityS"+ns[5..];
             if(ns.StartsWith("Unity.Physics")) return "UnityS"+ns[5..];
             return ns;
         }),
-        new ReplacePredefTypePass(@"float","sfloat"),
+        new ReplacePredefinedTypePass(@"float","sfloat"),
         //new ReplacePredefTypePass(@"double","sfloat"),
-        new ReplaceUserdefTypePass(@"double4x4","float4x4"),
-        new ReplaceUserdefTypePass(@"double4","float4"),
-        new ReplaceUserdefTypePass(@"double3","float3"),
+        new ReplaceUserdefinedTypePass(@"double4x4","float4x4"),
+        new ReplaceUserdefinedTypePass(@"double4","float4"),
+        new ReplaceUserdefinedTypePass(@"double3","float3"),
         new ReplaceNumericLiteralPass(f=>f==1?"sfloat.One":$"sfloat.FromRaw({*(uint*)&f})/*={f}*/"),
         new DisableBlockConstPass( DisableBlockOption.RemoveConstKeywordOnly),
     };
@@ -38,10 +38,15 @@ var contents = new string[]
     @"
 class Entity{
     const float PI = 3.14f;
-    void Foo(string name, float f = Entity.PI){
+    void Foo(string name = ""asd"", float f = Entity.PI){
         Foo(name,1f);
         Foo(name,f);
         Foo(name);
+    }
+    void Foo1(string name = ""asd"", float f = 13){
+        Foo1(name,1f);
+        Foo1(name,f);
+        Foo1(name);
     }
 
 

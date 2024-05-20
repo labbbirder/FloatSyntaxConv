@@ -26,8 +26,8 @@ namespace FloatSyntaxConv.Passes {
                 var ds = n.Parent as FieldDeclarationSyntax;
                 if (ds is null) continue;
                 var m = ds.Modifiers;
-
-                dict.Add(n.Parent!, ds.WithModifiers(m.Remove(n).Add(SyntaxFactory.ParseToken("static "))));
+                var tokenStatic = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithTriviaFrom(n);
+                dict.Add(n.Parent!, ds.WithModifiers(m.Remove(n).Add(tokenStatic)));
             }
             root = root.ReplaceNodes(dict.Keys,(o,n)=>dict[o])!;
             return root;

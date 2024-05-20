@@ -9,6 +9,7 @@
     <PackageProjectUrl>https://github.com/labbbirder/FloatSyntaxConv</PackageProjectUrl>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <Configurations>Debug;Release;Develop</Configurations>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|AnyCPU'">
@@ -16,8 +17,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0-3.final" />
+	  <PackageReference Include="CommandLineParser" Version="2.9.1" />
+	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0-3.final" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <Exec Command="$(OutDir)$(AssemblyName) -i E:/StandardRPG/Library/PackageCache/com.unity.physics@1.2.1/Unity.Physics -o E:/StandardRPG/Assets/3rd/Unity.Physics" />
+  </Target>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)|$(Platform)'=='Develop|AnyCPU'">
+	  <Exec Command="$(OutDir)$(AssemblyName) " />
+  </Target>
 
 </Project>
