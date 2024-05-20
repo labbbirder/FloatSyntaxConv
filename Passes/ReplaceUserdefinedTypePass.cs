@@ -9,13 +9,13 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FloatSyntaxConv.Passes {
-    internal class ReplaceUserdefTypePass : PassBase {
+    internal class ReplaceUserdefinedTypePass : PassBase {
         string origin, replace;
-        public ReplaceUserdefTypePass(string origin,string replace) {
+        public ReplaceUserdefinedTypePass(string origin,string replace) {
             this.origin = origin;
             this.replace = replace;
         }
-        internal override SyntaxNode Transform(SyntaxNode root, SemanticModel model) {
+        internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation) {
             var nodes = root.DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .Where(n => n.ToString() == origin)

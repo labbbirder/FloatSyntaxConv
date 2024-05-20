@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace FloatSyntaxConv {
         Final,
     }
     internal abstract class PassBase {
-        internal abstract SyntaxNode Transform(SyntaxNode root, SemanticModel model);
+        internal abstract SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation);
         protected bool IsWildcardMatch(string Wildcard, string input) {
             Wildcard = Wildcard
                 .Replace(".", "\\.")

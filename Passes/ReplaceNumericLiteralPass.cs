@@ -15,7 +15,7 @@ namespace FloatSyntaxConv.Passes {
         public ReplaceNumericLiteralPass(Func<float, string> replacer) {
             this.replacer = replacer;
         }
-        internal override SyntaxNode Transform(SyntaxNode root, SemanticModel model) {
+        internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation) {
             var tokens = root.DescendantTokens()
                 .OfType<SyntaxToken>()
                 .Where(t => t.IsKind(SyntaxKind.NumericLiteralToken))

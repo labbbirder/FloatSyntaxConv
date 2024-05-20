@@ -13,9 +13,10 @@ PassBase[] passes;
 
 unsafe {
     passes = new PassBase[] {
-        new DisableDefaultParametersPass(),
+        new ConstPropagatePass(),
+        //new DisableDefaultParametersPass(),
         new DisableFieldConstPass(new HashSet<string>{"float"}),
-        new ChangeUsingDirectPass(ns => {
+        new ReplaceNamePass(ns => {
             if(ns.StartsWith("Unity.Mathematics")) return "UnityS"+ns[5..];
             if(ns.StartsWith("Unity.Physics")) return "UnityS"+ns[5..];
             return ns;
@@ -25,25 +26,51 @@ unsafe {
         new ReplaceUserdefTypePass(@"double4x4","float4x4"),
         new ReplaceUserdefTypePass(@"double4","float4"),
         new ReplaceUserdefTypePass(@"double3","float3"),
-        new ReplaceNumericLiteralPass(f=>$"sfloat.FromRaw({*(uint*)&f})"),
+        new ReplaceNumericLiteralPass(f=>f==1?"sfloat.One":$"sfloat.FromRaw({*(uint*)&f})/*={f}*/"),
         new DisableBlockConstPass( DisableBlockOption.RemoveConstKeywordOnly),
     };
 }
 
+
+#if Develop // 切换到Develop模式调试自定义文本
+var contents = new string[]
+{
+    @"
+class Entity{
+    const float PI = 3.14f;
+    void Foo(string name, float f = Entity.PI){
+        Foo(name,1f);
+        Foo(name,f);
+        Foo(name);
+    }
+
+
+}
+
+",
+};
+
+foreach(var node in ConsumeFileContents(contents))
+{
+    Console.WriteLine(node);
+}
+
+#else
+
 Parser.Default.ParseArguments<CliOptions>(args).WithParsed(opt => {
-    Console.WriteLine($"translating {opt.InputPath}...");
+    Console.WriteLine($"translating {opt.InputPath} into {opt.OutputPath}...");
     ConsumeDirectorySources(opt.InputPath, opt.OutputPath);
 });
+#endif
 
 IEnumerable<SyntaxNode> WalkSyntaxTrees(CSharpCompilation compilation) {
     var trees = compilation.SyntaxTrees;
-
     foreach (var t in compilation.SyntaxTrees) {
 
         var root = t.GetRoot();
         foreach (var pass in passes) {
-            var model = compilation.GetSemanticModel(t, true);
-            root = pass.Transform(root, model);
+            //var model = compilation.GetSemanticModel(root.SyntaxTree, true);
+            root = pass.Transform(root, compilation);
         }
         yield return root;
     }
@@ -79,7 +106,7 @@ void ConsumeDirectorySources(string directory, string outdir) {
             Directory.CreateDirectory(outPathDir);
 
         File.WriteAllText(outPath, node.ToString());
-        Console.WriteLine("output: " + outPath);
+        Console.WriteLine("output: " + relpath);
     }
 }
 

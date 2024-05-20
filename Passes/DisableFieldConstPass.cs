@@ -14,7 +14,7 @@ namespace FloatSyntaxConv.Passes {
         public DisableFieldConstPass(HashSet<string> types) {
             this.types = types;
         }
-        internal override SyntaxNode Transform(SyntaxNode root, SemanticModel model) {
+        internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation) {
             var nodes = root.DescendantNodes()
                 .OfType<FieldDeclarationSyntax>()
                 .Where(n=> types.Contains(n.Declaration.Type.ToString()))
@@ -23,8 +23,6 @@ namespace FloatSyntaxConv.Passes {
             var dict = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach(var n in nodes)
             {
-                Console.WriteLine(n.SyntaxTree.FilePath);
-                Console.WriteLine(n.Parent);
                 var ds = n.Parent as FieldDeclarationSyntax;
                 if (ds is null) continue;
                 var m = ds.Modifiers;

@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace FloatSyntaxConv.Passes {
     internal enum DisableBlockOption{
@@ -18,7 +16,7 @@ namespace FloatSyntaxConv.Passes {
         public DisableBlockConstPass(DisableBlockOption option) {
             this.option = option;
         }
-        internal override SyntaxNode Transform(SyntaxNode root, SemanticModel model) {
+        internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation) {
             var nodes = root.DescendantNodes()
                 .OfType<LocalDeclarationStatementSyntax>()
                 .SelectMany(n=>n.DescendantTokens().Where(t=>t.IsKind(SyntaxKind.ConstKeyword)))

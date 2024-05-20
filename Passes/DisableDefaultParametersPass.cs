@@ -15,14 +15,14 @@ namespace FloatSyntaxConv.Passes {
         public DisableDefaultParametersPass() {
             //this.option = option;
         }
-        internal override SyntaxNode Transform(SyntaxNode root, SemanticModel model) {
+        internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation) {
             var nodes = root.DescendantNodes()
                 .OfType<InvocationExpressionSyntax>()
                 ;
             foreach(var node in nodes) {
                 SymbolInfo sym = default;
                 try {
-                    sym = model.GetSymbolInfo(node);
+                    //sym = model.GetSymbolInfo(node);
 
                 }
                 catch {
