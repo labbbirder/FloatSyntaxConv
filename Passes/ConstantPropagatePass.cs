@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace FloatSyntaxConv.Passes
@@ -48,27 +49,49 @@ namespace FloatSyntaxConv.Passes
                 // get default values
                 var defaultParamValues = paramList.DescendantNodes()
                     .OfType<EqualsValueClauseSyntax>()
-                    .Where(n => n.Value is MemberAccessExpressionSyntax or IdentifierNameSyntax) // ignore literal values
                     .Select(n => n.Value)
                     ;
                 var fillingArguments = ivkNode.ArgumentList.Arguments;
                 bool hasFloatingDefault = false;
-                foreach (var v in defaultParamValues)
+                var paramIndex = 0;
+                foreach (var param in paramList.Parameters)
                 {
-                    // get defining field
-                    var declModel = compilation.GetSemanticModel(v.SyntaxTree);
-                    var symb = declModel.GetSymbolInfo(v);
-                    var field = symb.Symbol as IFieldSymbol;
-                    if (field is null) continue;
+                    paramIndex++;
+                    var defaultParamValue = param.DescendantNodes()
+                        .OfType<EqualsValueClauseSyntax>()
+                        .Select(v => v.Value)
+                        .FirstOrDefault()
+                        ;
+                    if (defaultParamValue is null) continue;
 
-                    // check floating type
-                    hasFloatingDefault |= field.Type.SpecialType
-                        is SpecialType.System_Single
-                        or SpecialType.System_Double;
+                    ExpressionSyntax defaultExpression = default!;
+                    if (defaultParamValue is MemberAccessExpressionSyntax or IdentifierNameSyntax)
+                    {
+                        // get defining field
+                        var declModel = compilation.GetSemanticModel(defaultParamValue.SyntaxTree);
+                        var symb = declModel.GetSymbolInfo(defaultParamValue);
+                        var field = symb.Symbol as IFieldSymbol;
+                        if (field is null) continue;
 
-                    var defaultValue = GetFieldValue(field); // field.ConstValue returns null
-                    var argument = SyntaxFactory.Argument(GetFieldValue(field));
-                    if (fillingArguments.Count < paramList.Parameters.Count)
+                        // check floating type
+                        hasFloatingDefault |= field.Type.SpecialType
+                            is SpecialType.System_Single
+                            or SpecialType.System_Double;
+                        defaultExpression = GetFieldValue(field); // field.ConstValue returns null
+                    }
+                    else
+                    {
+                        var p = defaultParamValue.Ancestors().OfType<ParameterSyntax>().First();
+                        hasFloatingDefault |= p.Type.ToString() is "float" or "double";
+                        defaultExpression = defaultParamValue;
+                    }
+                    //else
+                    //{
+                    //    throw new($"Unknown syntax {defaultParamValue.GetType()}:{defaultParamValue.Parent}");
+                    //}
+
+                    var argument = SyntaxFactory.Argument(defaultExpression);
+                    if (fillingArguments.Count < paramIndex)
                     {
                         fillingArguments = fillingArguments.Add(argument);
                     }
