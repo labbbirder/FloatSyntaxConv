@@ -15,6 +15,10 @@ unsafe {
     passes = new PassBase[] {
         new ConstantPropagatePass(),
         new DisableDefaultParametersPass(),
+        new ReplaceSizeOfPass(new Dictionary<string, string>()
+        {
+            {"float","uint" },
+        }),
         new DisableFieldConstPass(new HashSet<string>{"float"}),
         new ReplaceNamePass(ns => {
             if(ns.StartsWith("Unity.Mathematics")) return "UnityS"+ns[5..];
@@ -24,6 +28,7 @@ unsafe {
         new ReplacePredefinedTypePass(@"float","sfloat"),
         //new ReplacePredefTypePass(@"double","sfloat"),
         new ReplaceUserdefinedTypePass(@"double4x4","float4x4"),
+        new ReplaceUserdefinedTypePass(@"double3x3","float3x3"),
         new ReplaceUserdefinedTypePass(@"double4","float4"),
         new ReplaceUserdefinedTypePass(@"double3","float3"),
         new ReplaceNumericLiteralPass(f=>f==1?"sfloat.One":$"sfloat.FromRaw({*(uint*)&f})/*={f}*/"),
@@ -36,19 +41,24 @@ unsafe {
 var contents = new string[]
 {
     @"
+
 class Entity{
+    fixed byte buffer[sizeof(float) * 3 + 1];
     const float PI = 3.14f;
     void Foo(string name = ""asd"", float f = Entity.PI){
         Foo(name,1f);
         Foo(name,f);
         Foo(name);
     }
+    void Foo1(){
+        Foo1("""");
+
+    }
     void Foo1(string name = ""asd"", float f = 13){
         Foo1(name,1f);
         Foo1(name,f);
         Foo1(name);
     }
-
 
 }
 
@@ -59,7 +69,10 @@ foreach(var node in ConsumeFileContents(contents))
 {
     Console.WriteLine(node);
 }
+void Foo(int a = 13 + 1)
+{
 
+}
 #else
 
 Parser.Default.ParseArguments<CliOptions>(args).WithParsed(opt => {
