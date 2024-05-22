@@ -11,7 +11,8 @@ using Microsoft.CodeAnalysis.CSharp;
 
 PassBase[] passes;
 
-unsafe {
+unsafe
+{
     passes = new PassBase[] {
         new ConstantPropagatePass(),
         new DisableDefaultParametersPass(),
@@ -26,7 +27,7 @@ unsafe {
             return ns;
         }),
         new ReplacePredefinedTypePass(@"float","sfloat"),
-        //new ReplacePredefTypePass(@"double","sfloat"),
+        new ReplacePredefinedTypePass(@"double","sfloat"),
         new ReplaceUserdefinedTypePass(@"double4x4","float4x4"),
         new ReplaceUserdefinedTypePass(@"double3x3","float3x3"),
         new ReplaceUserdefinedTypePass(@"double4","float4"),
@@ -42,27 +43,43 @@ var contents = new string[]
 {
     @"
 
-class Entity{
+internal class Entity{
     fixed byte buffer[sizeof(float) * 3 + 1];
     const float PI = 3.14f;
     void Foo(string name = ""asd"", float f = Entity.PI){
         Foo(name,1f);
         Foo(name,f);
         Foo(name);
+        var tick = Asdakw.Foo1(Asdakw.asd);
+        this.Run(name);
     }
-    void Foo1(){
-        Foo1("""");
-
-    }
-    void Foo1(string name = ""asd"", float f = 13){
-        Foo1(name,1f);
-        Foo1(name,f);
-        Foo1(name);
-    }
-
 }
 
 ",
+    @"
+
+internal struct Asdakw{
+    public static Asdakw asd = new();
+    public static Comp Foo1()=> Foo1(Asdakw.asd);
+    public static Comp Foo1(Asdakw name, float f = 13,float ad=Entity.PI, float tt=Entity.PI){
+        Foo1(name,1f);
+        Foo1(name,f);
+        Foo1(name);
+        return new();
+    }
+}
+
+"
+,@"
+public interface IComp{}
+public struct Com2p:IComp{}
+public static class Ext{
+    public static void Run(this Entity e,string name=""aa"", float dd=13+1f){
+
+    }
+
+}
+"
 };
 
 foreach(var node in ConsumeFileContents(contents))
@@ -75,18 +92,22 @@ void Foo(int a = 13 + 1)
 }
 #else
 
-Parser.Default.ParseArguments<CliOptions>(args).WithParsed(opt => {
+Parser.Default.ParseArguments<CliOptions>(args).WithParsed(opt =>
+{
     Console.WriteLine($"translating {opt.InputPath} into {opt.OutputPath}...");
-    ConsumeDirectorySources(opt.InputPath, opt.OutputPath);
+    ConsumeDirectorySources(opt.InputPath, opt.OutputPath, new string[] {});
 });
 #endif
 
-IEnumerable<SyntaxNode> WalkSyntaxTrees(CSharpCompilation compilation) {
+IEnumerable<SyntaxNode> WalkSyntaxTrees(CSharpCompilation compilation)
+{
     var trees = compilation.SyntaxTrees;
-    foreach (var t in compilation.SyntaxTrees) {
+    foreach (var t in compilation.SyntaxTrees)
+    {
 
         var root = t.GetRoot();
-        foreach (var pass in passes) {
+        foreach (var pass in passes)
+        {
             //var model = compilation.GetSemanticModel(root.SyntaxTree, true);
             root = pass.Transform(root, compilation);
         }
@@ -94,28 +115,36 @@ IEnumerable<SyntaxNode> WalkSyntaxTrees(CSharpCompilation compilation) {
     }
 }
 
-IEnumerable<SyntaxNode> ConsumeFileContents(params string[] contents) {
+IEnumerable<SyntaxNode> ConsumeFileContents(params string[] contents)
+{
     var compilation = CSharpCompilation.Create("",
         contents.Select(t => CSharpSyntaxTree.ParseText(t, CSharpParseOptions.Default))
     );
     foreach (var node in WalkSyntaxTrees(compilation)) yield return node;
 }
 
-IEnumerable<SyntaxTree> GetSyntaxTrees(params string[] csFiles) {
-    foreach (var csFile in csFiles) {
+IEnumerable<SyntaxTree> GetSyntaxTrees(params string[] csFiles)
+{
+    foreach (var csFile in csFiles)
+    {
         var content = File.ReadAllText(csFile);
         var tree = CSharpSyntaxTree.ParseText(content, null, csFile);
         yield return tree;
     }
 }
 
-void ConsumeDirectorySources(string directory, string outdir) {
+void ConsumeDirectorySources(string directory, string outdir, string[] references)
+{
     var csFiles = Directory.GetFiles(directory, "*.cs", SearchOption.AllDirectories);
+    var refs = references.ToHashSet();
+    refs.Add(typeof(int).Assembly.Location);
     var compilation = CSharpCompilation.Create("Dummy",
-        GetSyntaxTrees(csFiles)
+        GetSyntaxTrees(csFiles),
+        refs.Select(i => MetadataReference.CreateFromFile(i))
     );
     var nodes = WalkSyntaxTrees(compilation);
-    foreach (var node in nodes) {
+    foreach (var node in nodes)
+    {
         var path = node.SyntaxTree.FilePath;
         var relpath = Path.GetRelativePath(directory, path);
         var outPath = Path.Combine(outdir, relpath);
@@ -128,11 +157,14 @@ void ConsumeDirectorySources(string directory, string outdir) {
     }
 }
 
-class CliOptions {
+class CliOptions
+{
 
     [Option('i', "input-path", Required = true, HelpText = "The folder path of cs files.")]
     public string InputPath { get; set; }
     [Option('o', "output-path", Required = true, HelpText = "The output path of translated cs files.")]
     public string OutputPath { get; set; }
+    //[Option('r', "references", Required = false, HelpText = "The referenced assembly files.")]
+    //public string[]? References { get; set; }
 }
 
