@@ -40,11 +40,18 @@ namespace FloatSyntaxConv.Passes
                 SymbolInfo sym = default;
                 try
                 {
-                    var alia = thisModel.GetOperation(ivkNode) as IInvocationOperation;
-                    explicitArgumentsCount = alia.Arguments.Count(a => a.ArgumentKind != ArgumentKind.DefaultValue);
                     sym = thisModel.GetSymbolInfo(ivkNode);
                 }
                 catch { continue; }
+                try
+                {
+                    var operation = thisModel.GetOperation(ivkNode) as IInvocationOperation;
+                    explicitArgumentsCount = operation.Arguments.Count(a => a.ArgumentKind != ArgumentKind.DefaultValue);
+                }
+                catch
+                {
+                    explicitArgumentsCount = fillingArguments.Count;
+                }
                 var methodSymbol = sym.Symbol as IMethodSymbol;
                 if (methodSymbol is null && sym.CandidateSymbols.Length !=0)
                 {
@@ -71,7 +78,6 @@ namespace FloatSyntaxConv.Passes
                 var paramIndex = 0;
                 foreach (var param in paramList.Parameters)
                 {
-                    //Console.WriteLine(param);
                     paramIndex++;
                     var defaultParamValue = param.DescendantNodes()
                         .OfType<EqualsValueClauseSyntax>()

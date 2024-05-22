@@ -15,11 +15,12 @@ namespace FloatSyntaxConv.Passes {
         internal override SyntaxNode Transform(SyntaxNode root, CSharpCompilation compilation) {
             var nodes = root.DescendantNodes()
                 .OfType<NameSyntax>()
-                .Where(n => n.Parent is not NameSyntax || n.Parent is TypeArgumentListSyntax)
+                .Where(n => n.Parent is not NameSyntax or TypeArgumentListSyntax)
                 .Where(n=>n.ToString()!=replacer(n.ToString()))
                 ;
             root = root.ReplaceNodes(nodes, (o, n) => {
                 var repl = replacer(o.ToString());
+                Console.WriteLine($"repl {o} to {repl}");
                 if (o.Parent is TypeArgumentListSyntax) Console.WriteLine(o.Parent +" > "+repl );
                 return SyntaxFactory.IdentifierName(repl);
             });
