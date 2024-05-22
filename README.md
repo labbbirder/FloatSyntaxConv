@@ -31,9 +31,9 @@ namespace com.bbbirder.Simulation{
 }
 ```
 ## CLI Usage
-构建后，通过命令行运行。
+构建后，通过命令行运行；或者直接修改运行`Test.bat`
 
-参数如下：
+命令行参数如下：
 ```bash
 FloatSyntaxConv 1.0.0+816f22ed4d5839a40ee5aa01fc78b70d72ec53e0
 Copyright (C) 2024 bbbirder
