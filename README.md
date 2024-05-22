@@ -83,3 +83,15 @@ Copyright (C) 2024 bbbirder
 可以自己实现新的Pass
 
 如果需要对接其他软浮点实现，则可参考Program.cs调整Pass参数
+
+## Best Practice
+
+### 1. 内置浮点数学库
+为使转换更准确，建议将要用的浮点数学库放置在`--input-path`下，并在文件夹末尾加`~`，如：SoftMath~。这样Unity不会导入重复的SoftMath
+
+同理可以放置其他依赖模块
+
+### 2. 修改Program.cs
+
+此项目为sfloat和Unity.Entities设计，其他场景需要修改Program
+
