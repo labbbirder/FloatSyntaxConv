@@ -40,23 +40,8 @@ namespace FloatSyntaxConv.Passes
                 SymbolInfo sym = default;
                 try
                 {
-
-                    if (ivkNode.ToString().Contains("CreateLimitedDistance"))
-                    {
-                        foreach(var diagn in thisModel.GetDiagnostics())
-                        {
-                            Console.WriteLine(diagn);
-                        }
-                        Console.WriteLine(ivkNode.ToString()+" - "+ thisModel.GetSymbolInfo(ivkNode).Symbol);
-                    }
                     var alia = thisModel.GetOperation(ivkNode) as IInvocationOperation;
                     explicitArgumentsCount = alia.Arguments.Count(a => a.ArgumentKind != ArgumentKind.DefaultValue);
-                    //var l = alia.Arguments.Length;
-                    //foreach (var a in alia.Arguments)
-                    //{
-
-                    //Console.WriteLine($"{ivkNode} {a.Parameter.MetadataName} {a.ArgumentKind}");
-                    //}
                     sym = thisModel.GetSymbolInfo(ivkNode);
                 }
                 catch { continue; }
@@ -71,14 +56,7 @@ namespace FloatSyntaxConv.Passes
 
                     methodSymbol = symbols[0];
                 }
-                //if (methodSymbol == null)
-                //{
-                //    Console.WriteLine("bad:  " + ivkNode);
-                //}
-                //else
-                //{
-                //    Console.WriteLine("good: " + ivkNode);
-                //}
+
                 if (methodSymbol is null) continue;
                 if (methodSymbol.DeclaringSyntaxReferences.Length == 0) continue;
                 var decl = methodSymbol.DeclaringSyntaxReferences[0].GetSyntax();
@@ -105,13 +83,10 @@ namespace FloatSyntaxConv.Passes
                     ExpressionSyntax? defaultExpression = default;
                     if (defaultParamValue is MemberAccessExpressionSyntax or IdentifierNameSyntax)
                     {
-                    //Console.WriteLine("field");
                         // get defining field
                         var declModel = compilation.GetSemanticModel(defaultParamValue.SyntaxTree, true);
                         var symb = declModel.GetSymbolInfo(defaultParamValue);
                         var field = symb.Symbol as IFieldSymbol;
-                        if(defaultParamValue.ToString().Contains("DefaultSpringFrequency"))
-                    Console.WriteLine(defaultParamValue + " > "+field +" in "+ivkNode);
                         if (field is null) continue;
 
                         // check floating type
@@ -124,7 +99,6 @@ namespace FloatSyntaxConv.Passes
                     }
                     else
                     {
-                    //Console.WriteLine("literal");
                         var p = defaultParamValue.Ancestors().OfType<ParameterSyntax>().First();
                         hasFloatingDefault |= p.Type.ToString() is "float" or "double";
                         defaultExpression = defaultParamValue;
