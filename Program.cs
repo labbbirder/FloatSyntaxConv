@@ -19,8 +19,15 @@ unsafe
         new ReplaceSizeOfPass(new Dictionary<string, string>()
         {
             {"float","uint" },
+            {"double","ulong" },
         }),
         new DisableFieldConstPass(new HashSet<string>{"float"}),
+        new ReplaceAccessPass(ns => {
+            if(ns.StartsWith("Entities.Entity.")) return "Unity."+ns;
+            if(ns.StartsWith("SystemAPI.Time.ElapsedTime")) return "(sfloat)SystemAPI.Time.ElapsedTime";
+            if(ns.StartsWith("SystemAPI.Time.DeltaTime")) return "(sfloat)SystemAPI.Time.DeltaTime";
+            return ns;
+        }),
         new ReplaceNamePass(ns => {
             if(ns.StartsWith("Unity.Mathematics")) return "UnityS"+ns[5..];
             if(ns.StartsWith("Unity.Physics")) return "UnityS"+ns[5..];
@@ -82,7 +89,7 @@ public static class Ext{
 "
 };
 
-foreach(var node in ConsumeFileContents(contents))
+foreach (var node in ConsumeFileContents(contents))
 {
     Console.WriteLine(node);
 }
