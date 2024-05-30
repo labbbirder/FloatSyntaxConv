@@ -27,7 +27,8 @@ namespace FloatSyntaxConv.Passes {
                 if (ds is null) continue;
                 var m = ds.Modifiers;
                 var tokenStatic = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithTriviaFrom(n);
-                dict.Add(n.Parent!, ds.WithModifiers(m.Remove(n).Add(tokenStatic)));
+                var tokenReadonly = SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword).WithTrailingTrivia(n.TrailingTrivia);
+                dict.Add(n.Parent!, ds.WithModifiers(m.Remove(n).Add(tokenStatic).Add(tokenReadonly)));
             }
             root = root.ReplaceNodes(dict.Keys,(o,n)=>dict[o])!;
             return root;

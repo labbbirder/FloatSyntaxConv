@@ -30,7 +30,8 @@ unsafe
         }),
         new ReplaceNamePass(ns => {
             if(ns.StartsWith("Unity.Mathematics")) return "UnityS"+ns[5..];
-            if(ns.StartsWith("Unity.Physics")) return "UnityS"+ns[5..];
+            if(ns.StartsWith("Unity.Transforms")) return "UnityS"+ns[5..];
+            //if(ns.StartsWith("Unity.Physics")) return "UnityS"+ns[5..];
             return ns;
         }),
         new ReplacePredefinedTypePass(@"float","sfloat"),
@@ -102,7 +103,7 @@ void Foo(int a = 13 + 1)
 Parser.Default.ParseArguments<CliOptions>(args).WithParsed(opt =>
 {
     Console.WriteLine($"translating {opt.InputPath} into {opt.OutputPath}...");
-    ConsumeDirectorySources(opt.InputPath, opt.OutputPath, new string[] {});
+    ConsumeDirectorySources(opt.InputPath, opt.OutputPath, opt.References,opt.ExcludePaths);
 });
 #endif
 
@@ -140,7 +141,7 @@ IEnumerable<SyntaxTree> GetSyntaxTrees(params string[] csFiles)
     }
 }
 
-void ConsumeDirectorySources(string directory, string outdir, string[] references)
+void ConsumeDirectorySources(string directory, string outdir, IEnumerable<string> references, IEnumerable<string> ignores)
 {
     var csFiles = Directory.GetFiles(directory, "*.cs", SearchOption.AllDirectories);
     var refs = references.ToHashSet();
@@ -153,6 +154,7 @@ void ConsumeDirectorySources(string directory, string outdir, string[] reference
     foreach (var node in nodes)
     {
         var path = node.SyntaxTree.FilePath;
+        if (ignores.Any(path.StartsWith)) continue;
         var relpath = Path.GetRelativePath(directory, path);
         var outPath = Path.Combine(outdir, relpath);
         var outPathDir = Path.GetDirectoryName(outPath);
@@ -171,7 +173,9 @@ class CliOptions
     public string InputPath { get; set; }
     [Option('o', "output-path", Required = true, HelpText = "The output path of translated cs files.")]
     public string OutputPath { get; set; }
-    //[Option('r', "references", Required = false, HelpText = "The referenced assembly files.")]
-    //public string[]? References { get; set; }
+    [Option('e', "exclude-path", Required = false, HelpText = "The paths involved wont be output inside input path.")]
+    public IEnumerable<string> ExcludePaths { get; set; }
+    [Option('r', "references", Required = false, HelpText = "The referenced assembly files.")]
+    public IEnumerable<string> References { get; set; }
 }
 

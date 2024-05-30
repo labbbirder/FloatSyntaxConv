@@ -53,15 +53,17 @@ namespace FloatSyntaxConv.Passes
                     explicitArgumentsCount = fillingArguments.Count;
                 }
                 var methodSymbol = sym.Symbol as IMethodSymbol;
-                if (methodSymbol is null && sym.CandidateSymbols.Length !=0)
+                if (methodSymbol is null && sym.CandidateSymbols.Length > 0)
                 {
                     var symbols = sym.CandidateSymbols.OfType<IMethodSymbol>()
                         .Where(s => s.Parameters.Length >= fillingArguments.Count)
                         .ToArray();
 
                     if (symbols.Length > 1) Console.WriteLine($"{ivkNode} with candidates count:{sym.CandidateSymbols.Length}");
-
-                    methodSymbol = symbols[0];
+                    if (symbols.Length != 0)
+                    {
+                        methodSymbol = symbols[0];
+                    }
                 }
 
                 if (methodSymbol is null) continue;
